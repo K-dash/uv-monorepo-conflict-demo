@@ -1,0 +1,20 @@
+[project]
+name = "repo-b"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests==2.31.0",
+    "common",
+]
+[dependency-groups]
+dev = [
+    "pytest==8.1.0",
+]
+
+[tool.uv.sources]
+common = { path = "../common", editable = true }
+
+[tool.setuptools]
+packages = ["src"]

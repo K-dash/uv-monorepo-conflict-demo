@@ -1,0 +1,11 @@
+[config]
+skip_core_tasks = true
+
+[tasks.setup-venv]
+condition = { files_modified = { input = ["./pyproject.toml", "uv.lock"], output = [".venv/timestamp.txt"] } }
+script = [
+    "uv venv",
+    "uv sync",
+    "uv pip install -e .",
+    "touch .venv/timestamp.txt",
+]
