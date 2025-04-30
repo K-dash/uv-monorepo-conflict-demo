@@ -5,12 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    # バージョンを固定せず、広めに範囲指定する
-    # こうしても common のrequestsのバージョンに従って repo_bのrequestsのバージョンが決まる
-    # デメリット：すべてのリポジトリでライブラリのバージョンを固定しているのでポリシーに反する
-    # 範囲を広くとっておかないと、commonライブラリのバージョンが範囲を超えたときに手動修正が必要
-    # "requests>=2.31.0, <3.0",
-    "requests==2.31.0",
+    "requests>=2.31.0, <3.0",
+    # "requests==2.31.0",
     "common",
 ]
 [dependency-groups]
