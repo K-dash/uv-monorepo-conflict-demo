@@ -1,0 +1,79 @@
+name: Sync uv.lock on Dependabot PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+env:
+  UV_VERSION: 0.5.1
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  uv-sync:
+    # if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'K-dash'
+    runs-on: ubuntu-22.04-2core-arm64
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      # Python & uv
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Configure git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+      # uv sync
+      - name: Run uv sync across repo
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '==> Searching for uv.lock files'
+          find . \
+            \( -path '*/.venv' -o -path '*/node_modules' -o -path '*/.git' \) -prune -o \
+            -type f -name 'uv.lock' -print0 |
+          while IFS= read -r -d '' lock; do
+            pkg_dir=$(dirname "$lock")
+            echo "🔄  $pkg_dir"
+            ( cd "$pkg_dir" && uv sync )
+          done
+          echo '==> uv sync finished'
+
+      # detect changes
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet --exit-code **/uv.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true"  >> "$GITHUB_OUTPUT"
+          fi
+
+      # commit & push
+      - name: Commit & push updated locks
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git add **/uv.lock
+          git commit -m "chore(deps): sync uv.lock files [skip ci]"
+          git push origin HEAD:${{ github.head_ref }}
