@@ -13,8 +13,19 @@ dev = [
     "pytest==8.1.0",
 ]
 
+# override-dependenciesを使う
+# commonに依存しているライブラリは、override-dependenciesを使ってバージョンを固定する方式
+# こうすると、commonで定義しているrequestsのバージョンに従って repo_aのrequestsのバージョンが決まる
+# デメリット：依存が増えるたびにoverride-dependenciesを追加する必要がある
+# [tool.uv]
+# override-dependencies = [
+#     "requests"
+# ]
+
 [tool.uv.sources]
 common = { path = "../common", editable = true }
 
 [tool.setuptools]
 packages = ["src"]
+
+
